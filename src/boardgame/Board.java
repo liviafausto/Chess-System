@@ -1,9 +1,9 @@
 package boardgame;
 
 public class Board {
-    private final int ROWS;
-    private final int COLUMNS;
-    private Piece[][] pieces;
+    private final int ROWS; // Total number of rows that limits the board
+    private final int COLUMNS; // Total number of columns that limits the board
+    private Piece[][] pieces; // Matrix that keeps the pieces of the board on their positions
     public Board(int ROWS, int COLUMNS){
         if(ROWS < 1 || COLUMNS < 1){
             throw new BoardException("Error in creating board: there must be at least 1 row and 1 column.");
@@ -18,14 +18,14 @@ public class Board {
 
     public int getColumns() { return COLUMNS; }
 
-    public Piece piece(int row, int column){
+    public Piece getPiece(int row, int column){
         if(!positionExists(row, column)){
             throw new BoardException("Position not on the board.");
         }
         return pieces[row][column];
     }
 
-    public Piece piece(Position position){
+    public Piece getPiece(Position position){
         if(!positionExists(position)){
             throw new BoardException("Position not on the board.");
         }
@@ -40,6 +40,21 @@ public class Board {
         piece.position = position;
     }
 
+    public Piece removePiece(Position position){
+        if(!positionExists(position)){
+            throw new BoardException("Position not on the board");
+        }
+        if(getPiece(position) == null){
+            return null;
+        }
+
+        Piece removedPiece = getPiece(position); // Captures the piece that will be removed
+        removedPiece.position = null; // Removes the position from the piece
+        pieces[position.getRow()][position.getColumn()] = null; // Removes the piece from the board
+        return removedPiece; // Returns the removed piece with null position
+
+    }
+
     private boolean positionExists(int row, int column){
         return row >= 0 && row < ROWS && column >=0 && column < COLUMNS;
     }
@@ -49,7 +64,7 @@ public class Board {
     }
 
     public boolean thereIsAPiece(Position position){
-        return piece(position) != null;
+        return getPiece(position) != null;
     }
 
 }
