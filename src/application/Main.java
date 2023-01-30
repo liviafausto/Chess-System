@@ -18,26 +18,37 @@ public class Main {
             try{
                 UI.clearScreen();
                 UI.printBoard(chessMatch.getPieces());
+                System.out.println();
+                System.out.println();
+                System.out.print("Source: ");
+                ChessPosition sourcePosition = UI.readChessPosition(scanner);
+
+                // The possible moves on the board have colored background:
+                boolean[][] possibleMoves = chessMatch.possibleMoves(sourcePosition);
+                UI.clearScreen();
+                UI.printBoard(chessMatch.getPieces(), possibleMoves);
 
                 System.out.println();
                 System.out.println();
-                System.out.println("CHOOSE A POSITION TO MOVE");
-                System.out.print("Source: ");
-                ChessPosition sourcePosition = UI.readChessPosition(scanner);
                 System.out.print("Target: ");
                 ChessPosition targetPosition = UI.readChessPosition(scanner);
 
                 ChessPiece capturedPiece = chessMatch.performChessMove(sourcePosition, targetPosition);
+                if(capturedPiece != null){
+                    System.out.println("CONGRATULATIONS, YOU CAPTURED A PIECE!");
+                    System.out.print("Press enter continue ");
+                    scanner.nextLine();
+                }
             }
             catch(ChessException chessException){
                 System.out.println();
-                System.out.println("Error: " + chessException.getMessage());
+                System.out.println(chessException.getMessage());
                 System.out.print("Press enter to try again ");
                 scanner.nextLine(); // Wait for user to press enter after exception
             }
             catch(InputMismatchException inputException){
                 System.out.println();
-                System.out.println("Error: " + inputException.getMessage());
+                System.out.println(inputException.getMessage());
                 System.out.print("Press enter to try again ");
                 scanner.nextLine();
             }
