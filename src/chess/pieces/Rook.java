@@ -16,57 +16,40 @@ public class Rook extends ChessPiece {
         return "R";
     }
 
-    @Override
-    // The Rook can move up, down, to the right and the left, as long as it's on a straight line
-    public boolean[][] possibleMoves() {
-        boolean[][] rooksMoves = new boolean[getBoard().getRows()][getBoard().getColumns()];
-        Position possiblePosition = new Position(0,0);
+    private void considerMove(boolean[][] map, int adjustRow, int adjustColumn){
+        final int ROOKS_ROW = this.position.getRow();
+        final int ROOKS_COLUMN = this.position.getColumn();
 
-        // 1. Looking above
-        possiblePosition.setValues(this.position.getRow() - 1, this.position.getColumn());
+        Position target = new Position(ROOKS_ROW + adjustRow, ROOKS_COLUMN + adjustColumn);
 
-        while(getBoard().positionExists(possiblePosition) && !getBoard().thereIsAPiece(possiblePosition)){
-            // Looking for empty positions
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
-            possiblePosition.setRow(possiblePosition.getRow() - 1);
+        while(getBoard().positionExists(target) && !getBoard().thereIsAPiece(target)){
+            // Looking through empty positions
+            map[target.getRow()][target.getColumn()] = true;
+            target.setValues(target.getRow() + adjustRow, target.getColumn() + adjustColumn);
         }
-        if(getBoard().positionExists(possiblePosition) && isThereOpponentPiece(possiblePosition)){
+        if(getBoard().positionExists(target) && isThereOpponentPiece(target)){
             // There is a piece on this position, but it's an opponent
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
+            map[target.getRow()][target.getColumn()] = true;
         }
 
-        // 2. Looking to the left
-        possiblePosition.setValues(this.position.getRow(), this.position.getColumn() - 1);
+    }
 
-        while(getBoard().positionExists(possiblePosition) && !getBoard().thereIsAPiece(possiblePosition)){
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
-            possiblePosition.setColumn(possiblePosition.getColumn() - 1);
-        }
-        if(getBoard().positionExists(possiblePosition) && isThereOpponentPiece(possiblePosition)){
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
-        }
+    @Override
+    public boolean[][] possibleMoves() {
+        // The Rook can move in its row or column
+        boolean[][] rooksMoves = new boolean[getBoard().getRows()][getBoard().getColumns()];
 
-        // 3. Looking to the right
-        possiblePosition.setValues(this.position.getRow(), this.position.getColumn() + 1);
+        // 1. Moves above
+        considerMove(rooksMoves, -1, 0);
 
-        while(getBoard().positionExists(possiblePosition) && !getBoard().thereIsAPiece(possiblePosition)){
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
-            possiblePosition.setColumn(possiblePosition.getColumn() + 1);
-        }
-        if(getBoard().positionExists(possiblePosition) && isThereOpponentPiece(possiblePosition)){
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
-        }
+        // 2. Moves below
+        considerMove(rooksMoves, +1, 0);
 
-        // 4. Looking below
-        possiblePosition.setValues(this.position.getRow() + 1, this.position.getColumn());
+        // 3. Moves to the left
+        considerMove(rooksMoves, 0, -1);
 
-        while(getBoard().positionExists(possiblePosition) && !getBoard().thereIsAPiece(possiblePosition)){
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
-            possiblePosition.setRow(possiblePosition.getRow() + 1);
-        }
-        if(getBoard().positionExists(possiblePosition) && isThereOpponentPiece(possiblePosition)){
-            rooksMoves[possiblePosition.getRow()][possiblePosition.getColumn()] = true;
-        }
+        // 4. Moves to the right
+        considerMove(rooksMoves, 0, +1);
 
         return rooksMoves;
     }
