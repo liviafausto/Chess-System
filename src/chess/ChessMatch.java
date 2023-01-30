@@ -6,19 +6,27 @@ import boardgame.Position;
 import chess.pieces.*;
 
 public class ChessMatch {
-    private Board board;
+    private int turn;
+    private Color currentPlayer;
+    private final Board BOARD;
 
     public ChessMatch(){
-        board = new Board(8,8);
+        BOARD = new Board(8,8);
+        turn = 1;
+        currentPlayer = Color.WHITE;
         initialSetup();
     }
 
-    public ChessPiece[][] getPieces(){
-        ChessPiece[][] chessPieces = new ChessPiece[board.getRows()][board.getColumns()];
+    public int getTurn() { return turn; }
 
-        for(int i=0; i<board.getRows(); i++){
-            for(int j=0; j<board.getColumns(); j++){
-                chessPieces[i][j] = (ChessPiece)board.getPiece(i, j);
+    public Color getCurrentPlayer() { return currentPlayer; }
+
+    public ChessPiece[][] getPieces(){
+        ChessPiece[][] chessPieces = new ChessPiece[BOARD.getRows()][BOARD.getColumns()];
+
+        for(int i=0; i<BOARD.getRows(); i++){
+            for(int j=0; j<BOARD.getColumns(); j++){
+                chessPieces[i][j] = (ChessPiece)BOARD.getPiece(i, j);
             }
         }
         return chessPieces;
@@ -27,7 +35,7 @@ public class ChessMatch {
     public boolean[][] possibleMoves(ChessPosition sourcePosition){
         Position source = sourcePosition.toPosition();
         validateSourcePosition(source);
-        return board.getPiece(source).possibleMoves();
+        return BOARD.getPiece(source).possibleMoves();
     }
 
     public ChessPiece performChessMove(ChessPosition sourcePosition, ChessPosition targetPosition){
@@ -35,54 +43,68 @@ public class ChessMatch {
         Position target = targetPosition.toPosition();
         validateSourcePosition(source);
         validateTargetPosition(source, target);
+
         Piece capturedPiece = makeMove(source, target);
+        nextTurn();
         return (ChessPiece)capturedPiece;
     }
 
     private Piece makeMove(Position source, Position target){
-        Piece sourcePiece = board.removePiece(source); // Removes the piece from the source position
-        Piece capturedPiece = board.removePiece(target); // Captures possible piece on target position
-        board.placePiece(sourcePiece, target);
+        Piece sourcePiece = BOARD.removePiece(source); // Removes the piece from the source position
+        Piece capturedPiece = BOARD.removePiece(target); // Captures possible piece on target position
+        BOARD.placePiece(sourcePiece, target);
         return capturedPiece;
     }
 
     private void validateSourcePosition(Position position){
-        if(!board.thereIsAPiece(position)){
+        if(currentPlayer != ((ChessPiece)BOARD.getPiece(position)).getColor()){
+            throw new ChessException("The chosen piece is not yours.");
+        }
+        if(!BOARD.thereIsAPiece(position)){
             throw new ChessException("There is no piece on source position.");
         }
-        if(!board.getPiece(position).isThereAnyPossibleMove()){
+        if(!BOARD.getPiece(position).isThereAnyPossibleMove()){
             throw new ChessException("There is no possible moves for the chosen piece.");
         }
     }
 
     private void validateTargetPosition(Position source, Position target){
-        if(!board.getPiece(source).possibleMove(target)){
+        if(!BOARD.getPiece(source).possibleMove(target)){
             throw new ChessException("The chosen piece can't move to target position.");
         }
     }
 
+    private void nextTurn(){
+        turn++;
+        if(currentPlayer == Color.WHITE){
+            currentPlayer = Color.BLACK;
+        } else {
+            currentPlayer = Color.WHITE;
+        }
+    }
+
     private void placeNewPiece(char column, int row, ChessPiece chessPiece){
-        board.placePiece(chessPiece, new ChessPosition(column, row).toPosition());
+        BOARD.placePiece(chessPiece, new ChessPosition(column, row).toPosition());
     }
 
     private void initialSetup(){
-        placeNewPiece('a', 8, new Rook(board, Color.BLACK));
-        placeNewPiece('b', 8, new Knight(board, Color.BLACK));
-        placeNewPiece('c', 8, new Bishop(board, Color.BLACK));
-        placeNewPiece('d', 8, new Queen(board, Color.BLACK));
-        placeNewPiece('e', 8, new King(board, Color.BLACK));
-        placeNewPiece('f', 8, new Bishop(board, Color.BLACK));
-        placeNewPiece('g', 8, new Knight(board, Color.BLACK));
-        placeNewPiece('h', 8, new Rook(board, Color.BLACK));
+        placeNewPiece('a', 8, new Rook(BOARD, Color.BLACK));
+        placeNewPiece('b', 8, new Knight(BOARD, Color.BLACK));
+        placeNewPiece('c', 8, new Bishop(BOARD, Color.BLACK));
+        placeNewPiece('d', 8, new Queen(BOARD, Color.BLACK));
+        placeNewPiece('e', 8, new King(BOARD, Color.BLACK));
+        placeNewPiece('f', 8, new Bishop(BOARD, Color.BLACK));
+        placeNewPiece('g', 8, new Knight(BOARD, Color.BLACK));
+        placeNewPiece('h', 8, new Rook(BOARD, Color.BLACK));
 
-        placeNewPiece('a', 1, new Rook(board, Color.WHITE));
-        placeNewPiece('b', 1, new Knight(board, Color.WHITE));
-        placeNewPiece('c', 1, new Bishop(board, Color.WHITE));
-        placeNewPiece('d', 1, new Queen(board, Color.WHITE));
-        placeNewPiece('e', 1, new King(board, Color.WHITE));
-        placeNewPiece('f', 1, new Bishop(board, Color.WHITE));
-        placeNewPiece('g', 1, new Knight(board, Color.WHITE));
-        placeNewPiece('h', 1, new Rook(board, Color.WHITE));
+        placeNewPiece('a', 1, new Rook(BOARD, Color.WHITE));
+        placeNewPiece('b', 1, new Knight(BOARD, Color.WHITE));
+        placeNewPiece('c', 1, new Bishop(BOARD, Color.WHITE));
+        placeNewPiece('d', 1, new Queen(BOARD, Color.WHITE));
+        placeNewPiece('e', 1, new King(BOARD, Color.WHITE));
+        placeNewPiece('f', 1, new Bishop(BOARD, Color.WHITE));
+        placeNewPiece('g', 1, new Knight(BOARD, Color.WHITE));
+        placeNewPiece('h', 1, new Rook(BOARD, Color.WHITE));
     }
 
 }

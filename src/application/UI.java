@@ -1,5 +1,6 @@
 package application;
 
+import chess.ChessMatch;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import chess.Color;
@@ -30,12 +31,11 @@ public class UI {
     public static final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
 
 
-    // https://stackoverflow.com/questions/2979383/java-clear-the-console
     public static void clearScreen() {
+        // https://stackoverflow.com/questions/2979383/java-clear-the-console
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
-
 
     public static ChessPosition readChessPosition(Scanner read){
         try{
@@ -51,6 +51,14 @@ public class UI {
         }
     }
 
+    public static void printMatch(ChessMatch chessMatch){
+        printBoard(chessMatch.getPieces());
+        System.out.println();
+        System.out.println();
+        System.out.print("Turn " + chessMatch.getTurn());
+        System.out.print(" - Waiting " + chessMatch.getCurrentPlayer() + " player...\n");
+    }
+
     public static void printBoard(ChessPiece[][] chessPieces){
 
         for(int i=0; i<chessPieces.length; i++){
@@ -62,6 +70,7 @@ public class UI {
         }
         System.out.println("    a b c d e f g h");
     }
+
     public static void printBoard(ChessPiece[][] chessPieces, boolean[][] possibleMoves){
 
         for(int i=0; i<chessPieces.length; i++){
