@@ -14,8 +14,25 @@ public class Bishop extends ChessPiece {
         return "B";
     }
 
+
+
     @Override
     public boolean[][] possibleMoves(){
-        return new boolean[getBoard().getRows()][getBoard().getColumns()];
+        // The Bishop moves only diagonally
+        boolean[][] bishopsMoves = new boolean[getBoard().getRows()][getBoard().getColumns()];
+
+        // 1. Moves towards the northwest
+        considerMoveTowards(bishopsMoves, -1, -1);
+
+        // 2. Moves towards the northeast
+        considerMoveTowards(bishopsMoves, -1, +1);
+
+        // 3. Moves towards the southwest
+        considerMoveTowards(bishopsMoves, +1, -1);
+
+        // 4. Moves towards the southeast
+        considerMoveTowards(bishopsMoves, +1, +1);
+
+        return bishopsMoves;
     }
 }

@@ -16,12 +16,6 @@ public class King extends ChessPiece {
         return "K";
     }
 
-    private void considerMove(boolean[][] map, Position target){
-        if(getBoard().positionExists(target))
-            if (getBoard().getPiece(target) == null || isThereOpponentPiece(target))
-                map[target.getRow()][target.getColumn()] = true;
-    }
-
     @Override
     public boolean[][] possibleMoves() {
         // The King moves from its position to a neighboring position
