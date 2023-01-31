@@ -60,10 +60,17 @@ public class UI {
         printCapturedPieces(captured);
         System.out.println();
         System.out.print("Turn " + chessMatch.getTurn());
-        System.out.print(" - Waiting " + chessMatch.getCurrentPlayer() + " player...\n");
 
-        if(chessMatch.getCheck()){
-            System.out.print(chessMatch.getCurrentPlayer() + " KING IS IN CHECK!");
+        if(!chessMatch.getCheckmate()){
+            System.out.print(" - Waiting " + chessMatch.getCurrentPlayer() + " player...\n");
+
+            if(chessMatch.getCheck())
+                System.out.print(chessMatch.getCurrentPlayer() + " KING IS IN CHECK!");
+        }
+        else {
+            System.out.println();
+            System.out.println("CHECKMATE!");
+            System.out.println(chessMatch.getCurrentPlayer() + " wins");
         }
     }
 

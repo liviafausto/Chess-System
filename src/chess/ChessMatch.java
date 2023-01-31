@@ -13,8 +13,9 @@ public class ChessMatch {
     private int turn;
     private Color currentPlayer;
     private final Board BOARD;
-    private List<Piece> boardPieces = new ArrayList<>();
     private boolean check;
+    private boolean checkmate;
+    private List<Piece> boardPieces = new ArrayList<>();
 
     public ChessMatch(){
         BOARD = new Board(8,8);
@@ -28,6 +29,8 @@ public class ChessMatch {
     public Color getCurrentPlayer() { return currentPlayer; }
 
     public boolean getCheck(){ return check; }
+
+    public boolean getCheckmate(){ return checkmate; }
 
     public ChessPiece[][] getPieces(){
         ChessPiece[][] chessPieces = new ChessPiece[BOARD.getRows()][BOARD.getColumns()];
@@ -57,9 +60,14 @@ public class ChessMatch {
             undoMove(source, target, capturedPiece);
             throw new ChessException("You can't put yourself in check.");
         }
-
         check = testCheck(opponent(currentPlayer));
-        nextTurn();
+
+        if(testCheckMate(opponent(currentPlayer))){
+            checkmate = true;
+        } else {
+            nextTurn();
+        }
+
         return (ChessPiece)capturedPiece;
     }
 
@@ -107,8 +115,8 @@ public class ChessMatch {
         currentPlayer = opponent(currentPlayer);
     }
 
-    private Color opponent(Color color){
-        if(color == Color.WHITE){
+    private Color opponent(Color player){
+        if(player == Color.WHITE){
             return Color.BLACK;
         } else {
             return Color.WHITE;
@@ -116,8 +124,8 @@ public class ChessMatch {
     }
 
     private ChessPiece getKing(Color kingsColor){
-        List<Piece> playersPieces = boardPieces.stream().filter(x->((ChessPiece)x).getColor() == kingsColor).collect(Collectors.toList());
-        for(Piece piece : playersPieces){
+        List<Piece> playerPieces = boardPieces.stream().filter(x->((ChessPiece)x).getColor() == kingsColor).collect(Collectors.toList());
+        for(Piece piece : playerPieces){
             if(piece instanceof King){
                 return (ChessPiece)piece;
             }
@@ -125,9 +133,9 @@ public class ChessMatch {
         throw new IllegalStateException("The is no " + kingsColor + " king on the board.");
     }
 
-    private boolean testCheck(Color color){
-        Position kingsPosition = getKing(color).getChessPosition().toPosition();
-        List<Piece> opponentsPieces = boardPieces.stream().filter(x->((ChessPiece)x).getColor() == opponent(color)).collect(Collectors.toList());
+    private boolean testCheck(Color player){
+        Position kingsPosition = getKing(player).getChessPosition().toPosition();
+        List<Piece> opponentsPieces = boardPieces.stream().filter(x->((ChessPiece)x).getColor() == opponent(player)).collect(Collectors.toList());
 
         for(Piece piece : opponentsPieces){
             boolean[][] possibleMoves = piece.possibleMoves();
@@ -138,29 +146,52 @@ public class ChessMatch {
         return false;
     }
 
+    private boolean testCheckMate(Color player){
+        // 1. Make a list of all the pieces available for the player in check
+        List<Piece> playerPieces = boardPieces.stream().filter(x->((ChessPiece)x).getColor() == player).collect(Collectors.toList());
+
+        for(Piece piece : playerPieces){
+            // 2. For each piece available for that player, get a map of its possible moves
+            boolean[][] possibleMoves = piece.possibleMoves();
+            Position source = ((ChessPiece)piece).getChessPosition().toPosition();
+
+            for(int i=0; i<possibleMoves.length; i++){
+                for(int j=0; j<possibleMoves.length; j++){
+
+                    if(possibleMoves[i][j]){
+                        // 3. For every possible position (target), make the move
+                        Position tryTarget = new Position(i,j);
+                        Piece capturedPiece = makeMove(source, tryTarget);
+                        // 4. Test if that move still resulted in check
+                        boolean check = testCheck(player);
+                        // 5. No matter the results, undo the move
+                        undoMove(source, tryTarget, capturedPiece);
+
+                        // If at least one move doesn't result in check, it's not checkmate
+                        if(!check)
+                            return false;
+                    }
+                }
+            }
+        }
+
+        // If every possible move available for that player still results in check, then it's checkmate
+        return true;
+    }
+
     private void placeNewPiece(char column, int row, ChessPiece chessPiece){
         BOARD.placePiece(chessPiece, new ChessPosition(column, row).toPosition());
         boardPieces.add(chessPiece);
     }
 
     private void initialSetup(){
-        placeNewPiece('a', 8, new Rook(BOARD, Color.BLACK));
-        placeNewPiece('b', 8, new Knight(BOARD, Color.BLACK));
-        placeNewPiece('c', 8, new Bishop(BOARD, Color.BLACK));
-        placeNewPiece('d', 8, new Queen(BOARD, Color.BLACK));
-        placeNewPiece('e', 8, new King(BOARD, Color.BLACK));
-        placeNewPiece('f', 8, new Bishop(BOARD, Color.BLACK));
+        placeNewPiece('a',2, new Queen(BOARD, Color.BLACK));
+        placeNewPiece('c', 2, new Knight(BOARD, Color.BLACK));
         placeNewPiece('g', 8, new Knight(BOARD, Color.BLACK));
-        placeNewPiece('h', 8, new Rook(BOARD, Color.BLACK));
-
-        placeNewPiece('a', 1, new Rook(BOARD, Color.WHITE));
-        placeNewPiece('b', 1, new Knight(BOARD, Color.WHITE));
-        placeNewPiece('c', 1, new Bishop(BOARD, Color.WHITE));
-        placeNewPiece('d', 1, new Queen(BOARD, Color.WHITE));
-        placeNewPiece('e', 1, new King(BOARD, Color.WHITE));
-        placeNewPiece('f', 1, new Bishop(BOARD, Color.WHITE));
-        placeNewPiece('g', 1, new Knight(BOARD, Color.WHITE));
-        placeNewPiece('h', 1, new Rook(BOARD, Color.WHITE));
+        placeNewPiece('c', 4, new Bishop(BOARD, Color.BLACK));
+        placeNewPiece('b', 8, new Bishop(BOARD, Color.BLACK));
+        placeNewPiece('c', 1, new King(BOARD, Color.WHITE));
+        placeNewPiece('e', 8, new King(BOARD, Color.BLACK));
     }
 
 }

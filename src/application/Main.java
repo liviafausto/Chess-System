@@ -16,7 +16,7 @@ public class Main {
         ChessMatch chessMatch = new ChessMatch();
         List<ChessPiece> capturedPieces = new ArrayList<>();
 
-        while(true){
+        while(!chessMatch.getCheckmate()){
             try{
                 UI.clearScreen();
                 UI.printMatch(chessMatch, capturedPieces);
@@ -57,6 +57,11 @@ public class Main {
             }
         }
 
+        // The while loop has been broken: the game has reached checkmate
+        UI.clearScreen();
+        UI.printMatch(chessMatch, capturedPieces);
+        System.out.println();
+        System.out.println("Thanks for playing!!!  ;)");
     }
 
 }
