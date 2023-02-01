@@ -72,10 +72,14 @@ public class ChessMatch {
     }
 
     private Piece makeMove(Position source, Position target){
-        Piece sourcePiece = BOARD.removePiece(source); // Removes the piece from the source position
-        Piece capturedPiece = BOARD.removePiece(target); // Captures possible piece on target position
+        // 1. Remove the piece from the source position and increase its move count
+        ChessPiece sourcePiece = (ChessPiece) BOARD.removePiece(source);
+        sourcePiece.increaseMoveCount();
+        // 2. Remove a possible piece from target position
+        Piece capturedPiece = BOARD.removePiece(target);
+        // 3. Place source piece on target position
         BOARD.placePiece(sourcePiece, target);
-
+        // 4. If there was a piece captured from target position, remove it from the board list
         if(capturedPiece != null){
             boardPieces.remove(capturedPiece);
         }
@@ -83,12 +87,15 @@ public class ChessMatch {
     }
 
     private void undoMove(Position source, Position target, Piece capturedPiece){
-        Piece sourcePiece = BOARD.removePiece(target);
+        // 1. Remove source piece from target position and decrease its move count
+        ChessPiece sourcePiece = (ChessPiece) BOARD.removePiece(target);
+        sourcePiece.decreaseMoveCount();
+        // 2. Place source piece back on source position
         BOARD.placePiece(sourcePiece, source);
-
+        // 3. If there was a piece captured when the move was made
         if(capturedPiece != null){
-            BOARD.placePiece(capturedPiece, target);
-            boardPieces.add(capturedPiece);
+            BOARD.placePiece(capturedPiece, target); // Place it back on target position
+            boardPieces.add(capturedPiece); // And add it back to the board list
         }
     }
 
