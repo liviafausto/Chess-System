@@ -192,13 +192,32 @@ public class ChessMatch {
     }
 
     private void initialSetup(){
-        placeNewPiece('a',2, new Queen(BOARD, Color.BLACK));
-        placeNewPiece('c', 2, new Knight(BOARD, Color.BLACK));
-        placeNewPiece('g', 8, new Knight(BOARD, Color.BLACK));
-        placeNewPiece('c', 4, new Bishop(BOARD, Color.BLACK));
-        placeNewPiece('b', 8, new Bishop(BOARD, Color.BLACK));
-        placeNewPiece('c', 1, new King(BOARD, Color.WHITE));
+        placeNewPiece('a', 8, new Rook(BOARD, Color.BLACK));
+        placeNewPiece('b', 8, new Knight(BOARD, Color.BLACK));
+        placeNewPiece('c', 8, new Bishop(BOARD, Color.BLACK));
+        placeNewPiece('d', 8, new Queen(BOARD, Color.BLACK));
         placeNewPiece('e', 8, new King(BOARD, Color.BLACK));
+        placeNewPiece('f', 8, new Bishop(BOARD, Color.BLACK));
+        placeNewPiece('g', 8, new Knight(BOARD, Color.BLACK));
+        placeNewPiece('h', 8, new Rook(BOARD, Color.BLACK));
+
+        for(char column='a'; column<'i'; column++){
+            placeNewPiece(column, 7, new Pawn(BOARD, Color.BLACK));
+        }
+
+
+        for(char column='a'; column<'i'; column++){
+            placeNewPiece(column, 2, new Pawn(BOARD, Color.WHITE));
+        }
+
+        placeNewPiece('a', 1, new Rook(BOARD, Color.WHITE));
+        placeNewPiece('b', 1, new Knight(BOARD, Color.WHITE));
+        placeNewPiece('c', 1, new Bishop(BOARD, Color.WHITE));
+        placeNewPiece('d', 1, new Queen(BOARD, Color.WHITE));
+        placeNewPiece('e', 1, new King(BOARD, Color.WHITE));
+        placeNewPiece('f', 1, new Bishop(BOARD, Color.WHITE));
+        placeNewPiece('g', 1, new Knight(BOARD, Color.WHITE));
+        placeNewPiece('h', 1, new Rook(BOARD, Color.WHITE));
     }
 
 }
