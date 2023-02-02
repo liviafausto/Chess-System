@@ -83,6 +83,37 @@ public class ChessMatch {
         if(capturedPiece != null){
             boardPieces.remove(capturedPiece);
         }
+
+        // # Special move: Castling
+        if(sourcePiece instanceof King){
+            // The Castling happens when a King moves two squares to the right or left
+            boolean kingSideCastling = (target.getColumn() == source.getColumn()+2);
+            boolean queenSideCastling = (target.getColumn() == source.getColumn()-2);
+            Position rooksSource, rooksTarget;
+
+            if(kingSideCastling){
+                // The Castling on the king-side uses the right Rook
+                rooksSource = new Position(source.getRow(), source.getColumn()+3);
+                // The Rook must be placed one square to the right of the King's source position
+                rooksTarget = new Position(source.getRow(), source.getColumn()+1);
+
+                ChessPiece rightRook = (ChessPiece) BOARD.removePiece(rooksSource);
+                BOARD.placePiece(rightRook, rooksTarget);
+                rightRook.increaseMoveCount();
+            }
+            else if(queenSideCastling){
+                // The Castling on the queen-side uses the left Rook
+                rooksSource = new Position(source.getRow(), source.getColumn()-4);
+                // The Rook must be placed one square to the left of the King's source position
+                rooksTarget = new Position(source.getRow(), source.getColumn()-1);
+
+                ChessPiece leftRook = (ChessPiece) BOARD.removePiece(rooksSource);
+                BOARD.placePiece(leftRook, rooksTarget);
+                leftRook.increaseMoveCount();
+            }
+
+        }
+
         return capturedPiece;
     }
 
@@ -97,6 +128,32 @@ public class ChessMatch {
             BOARD.placePiece(capturedPiece, target); // Place it back on target position
             boardPieces.add(capturedPiece); // And add it back to the board list
         }
+
+        // # Special move: Castling
+        if(sourcePiece instanceof King) {
+            // The Castling happenned if a King moved two squares to the right or left
+            boolean kingSideCastling = (target.getColumn() == source.getColumn() + 2);
+            boolean queenSideCastling = (target.getColumn() == source.getColumn() - 2);
+            Position rooksSource, castlingPosition;
+
+            if (kingSideCastling) {
+                // The right-side Rook must be placed back to its source position
+                rooksSource = new Position(source.getRow(), source.getColumn() + 3);
+                castlingPosition = new Position(source.getRow(), source.getColumn() + 1);
+
+                ChessPiece rightRook = (ChessPiece) BOARD.removePiece(castlingPosition);
+                BOARD.placePiece(rightRook, rooksSource);
+                rightRook.decreaseMoveCount();
+            } else if (queenSideCastling) {
+                // The left-side Rook must be placed back to its source position
+                rooksSource = new Position(source.getRow(), source.getColumn() - 4);
+                castlingPosition = new Position(source.getRow(), source.getColumn() - 1);
+
+                ChessPiece leftRook = (ChessPiece) BOARD.removePiece(castlingPosition);
+                BOARD.placePiece(leftRook, rooksSource);
+                leftRook.decreaseMoveCount();
+            }
+        }
     }
 
     private void validateSourcePosition(Position position){
@@ -107,7 +164,7 @@ public class ChessMatch {
             throw new ChessException("The chosen piece is not yours.");
         }
         if(!BOARD.getPiece(position).isThereAnyPossibleMove()){
-            throw new ChessException("There is no possible moves for the chosen piece.");
+            throw new ChessException("There are no possible moves for the chosen piece.");
         }
     }
 
@@ -196,7 +253,7 @@ public class ChessMatch {
         placeNewPiece('b', 8, new Knight(BOARD, Color.BLACK));
         placeNewPiece('c', 8, new Bishop(BOARD, Color.BLACK));
         placeNewPiece('d', 8, new Queen(BOARD, Color.BLACK));
-        placeNewPiece('e', 8, new King(BOARD, Color.BLACK));
+        placeNewPiece('e', 8, new King(BOARD, Color.BLACK, this));
         placeNewPiece('f', 8, new Bishop(BOARD, Color.BLACK));
         placeNewPiece('g', 8, new Knight(BOARD, Color.BLACK));
         placeNewPiece('h', 8, new Rook(BOARD, Color.BLACK));
@@ -214,7 +271,7 @@ public class ChessMatch {
         placeNewPiece('b', 1, new Knight(BOARD, Color.WHITE));
         placeNewPiece('c', 1, new Bishop(BOARD, Color.WHITE));
         placeNewPiece('d', 1, new Queen(BOARD, Color.WHITE));
-        placeNewPiece('e', 1, new King(BOARD, Color.WHITE));
+        placeNewPiece('e', 1, new King(BOARD, Color.WHITE, this));
         placeNewPiece('f', 1, new Bishop(BOARD, Color.WHITE));
         placeNewPiece('g', 1, new Knight(BOARD, Color.WHITE));
         placeNewPiece('h', 1, new Rook(BOARD, Color.WHITE));
