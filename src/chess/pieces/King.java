@@ -23,7 +23,7 @@ public class King extends ChessPiece {
     // # SPECIAL MOVE - CASTLING:
     // The King moves two squares to the left/right and a Rook moves over and in front of the King
     private boolean testRookCastling(Position position){
-        // Tests if a given position has a Rook which can perform the Castling
+        // This method tests if a given position has a Rook which can perform the Castling
         ChessPiece rook = (ChessPiece)getBoard().getPiece(position);
         // The Rook can only perform the Castling on its first move of the match
         return rook instanceof Rook && rook.getColor() == this.getColor() && rook.getMoveCount() == 0;
@@ -32,25 +32,34 @@ public class King extends ChessPiece {
     private void testKingCastling(boolean[][] map){
         final int KINGS_ROW = this.position.getRow();
         final int KINGS_COLUMN = this.position.getColumn();
+        Position rightRook = new Position(KINGS_ROW, KINGS_COLUMN + 3);
+        Position leftRook = new Position(KINGS_ROW, KINGS_COLUMN - 4);
 
         // 1. Test Castling with the king-side (right side) Rook
-        Position rightRook = new Position(KINGS_ROW, KINGS_COLUMN + 3);
         if(testRookCastling(rightRook)){
-            Position oneToTheRight = new Position(KINGS_ROW, KINGS_COLUMN + 1);
-            Position twoToTheRight = new Position(KINGS_ROW, KINGS_COLUMN + 2);
-            if(!getBoard().thereIsAPiece(oneToTheRight) && !getBoard().thereIsAPiece(twoToTheRight)){
-                map[KINGS_ROW][KINGS_COLUMN + 2] = true;
+            Position toTheRight = new Position(0,0);
+            // If all positions between the King and the Right Rook are empty
+            for(int i=1; i<3; i++){
+                toTheRight.setValues(KINGS_ROW, KINGS_COLUMN + i);
+                if(getBoard().thereIsAPiece(toTheRight))
+                    break;
+                else if(i == 2)
+                    map[KINGS_ROW][KINGS_COLUMN + 2] = true;
+                    // Then the King can move two squares to the right
             }
         }
 
         // 2. Test Castling with the queen-side (left side) Rook
-        Position leftRook = new Position(KINGS_ROW, KINGS_COLUMN - 4);
         if(testRookCastling(leftRook)){
-            Position oneToTheLeft = new Position(KINGS_ROW, KINGS_COLUMN - 1);
-            Position twoToTheLeft = new Position(KINGS_ROW, KINGS_COLUMN - 2);
-            Position threeToTheLeft = new Position(KINGS_ROW, KINGS_COLUMN - 3);
-            if(!getBoard().thereIsAPiece(oneToTheLeft) && !getBoard().thereIsAPiece(twoToTheLeft) && !getBoard().thereIsAPiece(threeToTheLeft)){
-                map[KINGS_ROW][KINGS_COLUMN - 2] = true;
+            Position toTheLeft = new Position(0,0);
+            // If all positions between the King and the Left Rook are empty
+            for(int i=1; i<4; i++){
+                toTheLeft.setValues(KINGS_ROW, KINGS_COLUMN - i);
+                if(getBoard().thereIsAPiece(toTheLeft))
+                    break;
+                else if(i == 3)
+                    map[KINGS_ROW][KINGS_COLUMN - 2] = true;
+                    // Then the King can move two squares to the left
             }
         }
     }
@@ -97,7 +106,7 @@ public class King extends ChessPiece {
         considerMove(kingsMoves, possibleMove);
 
         // # Special Move: Castling
-        // The King has to be on its first move of the match, and it can't be in check for the Castling
+        // The King has to be on its first move of the match, and it can't be in check
         if(getMoveCount() == 0 && !MATCH.getCheck()){
             testKingCastling(kingsMoves);
         }

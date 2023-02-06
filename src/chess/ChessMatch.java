@@ -87,31 +87,14 @@ public class ChessMatch {
         // # Special move: Castling
         if(sourcePiece instanceof King){
             // The Castling happens when a King moves two squares to the right or left
-            boolean kingSideCastling = (target.getColumn() == source.getColumn()+2);
-            boolean queenSideCastling = (target.getColumn() == source.getColumn()-2);
-            Position rooksSource, rooksTarget;
-
-            if(kingSideCastling){
-                // The Castling on the king-side uses the right Rook
-                rooksSource = new Position(source.getRow(), source.getColumn()+3);
-                // The Rook must be placed one square to the right of the King's source position
-                rooksTarget = new Position(source.getRow(), source.getColumn()+1);
-
-                ChessPiece rightRook = (ChessPiece) BOARD.removePiece(rooksSource);
-                BOARD.placePiece(rightRook, rooksTarget);
+            if(kingSideCastling(source.getColumn(), target.getColumn())){
+                ChessPiece rightRook = castlingRook(source, +3, +1);
                 rightRook.increaseMoveCount();
             }
-            else if(queenSideCastling){
-                // The Castling on the queen-side uses the left Rook
-                rooksSource = new Position(source.getRow(), source.getColumn()-4);
-                // The Rook must be placed one square to the left of the King's source position
-                rooksTarget = new Position(source.getRow(), source.getColumn()-1);
-
-                ChessPiece leftRook = (ChessPiece) BOARD.removePiece(rooksSource);
-                BOARD.placePiece(leftRook, rooksTarget);
+            else if(queenSideCastling(source.getColumn(), target.getColumn())){
+                ChessPiece leftRook = castlingRook(source, -4, -1);
                 leftRook.increaseMoveCount();
             }
-
         }
 
         return capturedPiece;
@@ -132,25 +115,12 @@ public class ChessMatch {
         // # Special move: Castling
         if(sourcePiece instanceof King) {
             // The Castling happenned if a King moved two squares to the right or left
-            boolean kingSideCastling = (target.getColumn() == source.getColumn() + 2);
-            boolean queenSideCastling = (target.getColumn() == source.getColumn() - 2);
-            Position rooksSource, castlingPosition;
-
-            if (kingSideCastling) {
-                // The right-side Rook must be placed back to its source position
-                rooksSource = new Position(source.getRow(), source.getColumn() + 3);
-                castlingPosition = new Position(source.getRow(), source.getColumn() + 1);
-
-                ChessPiece rightRook = (ChessPiece) BOARD.removePiece(castlingPosition);
-                BOARD.placePiece(rightRook, rooksSource);
+            if (kingSideCastling(source.getColumn(), target.getColumn())) {
+                ChessPiece rightRook = castlingRook(source, +1, +3);
                 rightRook.decreaseMoveCount();
-            } else if (queenSideCastling) {
-                // The left-side Rook must be placed back to its source position
-                rooksSource = new Position(source.getRow(), source.getColumn() - 4);
-                castlingPosition = new Position(source.getRow(), source.getColumn() - 1);
-
-                ChessPiece leftRook = (ChessPiece) BOARD.removePiece(castlingPosition);
-                BOARD.placePiece(leftRook, rooksSource);
+            }
+            else if (queenSideCastling(source.getColumn(), target.getColumn())) {
+                ChessPiece leftRook = castlingRook(source, -1, -4);
                 leftRook.decreaseMoveCount();
             }
         }
@@ -241,6 +211,26 @@ public class ChessMatch {
 
         // If every possible move available for that player still results in check, then it's checkmate
         return true;
+    }
+
+    private boolean kingSideCastling(int oldColumn, int newColumn){
+        return newColumn == oldColumn + 2;
+    }
+
+    private boolean queenSideCastling(int oldColumn, int newColumn){
+        return newColumn == oldColumn - 2;
+    }
+
+    private ChessPiece castlingRook(Position kingsPosition, int adjustSource, int adjustTarget){
+        final int KINGS_ROW = kingsPosition.getRow();
+        final int KINGS_COLUMN = kingsPosition.getColumn();
+
+        Position rooksSource = new Position(KINGS_ROW, KINGS_COLUMN + adjustSource);
+        Position rooksTarget = new Position(KINGS_ROW, KINGS_COLUMN + adjustTarget);
+
+        ChessPiece rook = (ChessPiece) BOARD.removePiece(rooksSource);
+        BOARD.placePiece(rook, rooksTarget);
+        return rook;
     }
 
     private void placeNewPiece(char column, int row, ChessPiece chessPiece){
