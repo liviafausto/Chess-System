@@ -15,7 +15,10 @@ public class ChessMatch {
     private final Board BOARD;
     private boolean check;
     private boolean checkmate;
-    private List<Piece> boardPieces = new ArrayList<>();
+    private final List<Piece> boardPieces = new ArrayList<>();
+    // The list "boardPieces" is final because it's always going to be an ArrayList
+
+    private ChessPiece enPassantVulnerable;
 
     public ChessMatch(){
         BOARD = new Board(8,8);
@@ -31,6 +34,8 @@ public class ChessMatch {
     public boolean getCheck(){ return check; }
 
     public boolean getCheckmate(){ return checkmate; }
+
+    public ChessPiece getEnPassantVulnerable(){ return enPassantVulnerable; }
 
     public ChessPiece[][] getPieces(){
         ChessPiece[][] chessPieces = new ChessPiece[BOARD.getRows()][BOARD.getColumns()];
@@ -62,11 +67,18 @@ public class ChessMatch {
         }
         check = testCheck(opponent(currentPlayer));
 
-        if(testCheckMate(opponent(currentPlayer))){
+        if(testCheckMate(opponent(currentPlayer)))
             checkmate = true;
-        } else {
+        else
             nextTurn();
-        }
+
+        // # Special Move: En Passant
+        ChessPiece movedPiece = (ChessPiece) BOARD.getPiece(target);
+        // A Pawn is vulnerable to the 'En Passant' if it has just moved 2 squares at once
+        if(movedPiece instanceof Pawn && testEnPassant(source, target))
+            enPassantVulnerable = movedPiece;
+        else
+            enPassantVulnerable = null;
 
         return (ChessPiece)capturedPiece;
     }
@@ -87,13 +99,25 @@ public class ChessMatch {
         // # Special move: Castling
         if(sourcePiece instanceof King){
             // The Castling happens when a King moves two squares to the right or left
-            if(kingSideCastling(source.getColumn(), target.getColumn())){
+            if(kingSideCastling(source, target)){
                 ChessPiece rightRook = castlingRook(source, +3, +1);
                 rightRook.increaseMoveCount();
             }
-            else if(queenSideCastling(source.getColumn(), target.getColumn())){
+            else if(queenSideCastling(source, target)){
                 ChessPiece leftRook = castlingRook(source, -4, -1);
                 leftRook.increaseMoveCount();
+            }
+        }
+
+        // # Special Move: En Passant
+        if(sourcePiece instanceof Pawn) {
+            boolean pawnMovedDiagonally = (source.getColumn() != target.getColumn());
+            // The En Passant happens when the pawn moved diagonally, but didn't capture a piece
+            if (pawnMovedDiagonally && capturedPiece == null) {
+                // The opponent piece has to be removed from its special position
+                Position opponentsPosition = enPassantPosition(sourcePiece, target);
+                capturedPiece = BOARD.removePiece(opponentsPosition);
+                boardPieces.remove(capturedPiece);
             }
         }
 
@@ -115,15 +139,28 @@ public class ChessMatch {
         // # Special move: Castling
         if(sourcePiece instanceof King) {
             // The Castling happenned if a King moved two squares to the right or left
-            if (kingSideCastling(source.getColumn(), target.getColumn())) {
+            if (kingSideCastling(source, target)) {
                 ChessPiece rightRook = castlingRook(source, +1, +3);
                 rightRook.decreaseMoveCount();
             }
-            else if (queenSideCastling(source.getColumn(), target.getColumn())) {
+            else if (queenSideCastling(source, target)) {
                 ChessPiece leftRook = castlingRook(source, -1, -4);
                 leftRook.decreaseMoveCount();
             }
         }
+
+        // # Special Move: En Passant
+        if(sourcePiece instanceof Pawn) {
+            boolean pawnMovedDiagonally = (source.getColumn() != target.getColumn());
+            // The En Passant happened if the Pawn captured a piece vulnerable to the En Passant
+            if (pawnMovedDiagonally && capturedPiece == enPassantVulnerable) {
+                // The captured piece has to be placed back on its original position
+                ChessPiece opponentsPawn = (ChessPiece)BOARD.removePiece(target);
+                Position originalPosition = enPassantPosition(sourcePiece, target);
+                BOARD.placePiece(opponentsPawn, originalPosition);
+            }
+        }
+
     }
 
     private void validateSourcePosition(Position position){
@@ -213,12 +250,14 @@ public class ChessMatch {
         return true;
     }
 
-    private boolean kingSideCastling(int oldColumn, int newColumn){
-        return newColumn == oldColumn + 2;
+
+    // # Special Moves' Methods
+    private boolean kingSideCastling(Position source, Position target){
+        return target.getColumn() == source.getColumn() + 2;
     }
 
-    private boolean queenSideCastling(int oldColumn, int newColumn){
-        return newColumn == oldColumn - 2;
+    private boolean queenSideCastling(Position source, Position target){
+        return target.getColumn() == source.getColumn() - 2;
     }
 
     private ChessPiece castlingRook(Position kingsPosition, int adjustSource, int adjustTarget){
@@ -233,6 +272,23 @@ public class ChessMatch {
         return rook;
     }
 
+    private boolean testEnPassant(Position source, Position target){
+        return target.getRow() == source.getRow() - 2 || target.getRow() == source.getRow() + 2;
+    }
+
+    private Position enPassantPosition(ChessPiece movedPawn, Position target){
+        Position opponent;
+        // If the moved Pawn is white, the opponent's pawn is under the target position
+        if(movedPawn.getColor() == Color.WHITE)
+            opponent = new Position(target.getRow() + 1, target.getColumn());
+        // If the moved Pawn is black, the opponent's pawn is above the target position
+        else
+            opponent = new Position(target.getRow() - 1, target.getColumn());
+
+        return opponent;
+    }
+
+    // Board's initial set up
     private void placeNewPiece(char column, int row, ChessPiece chessPiece){
         BOARD.placePiece(chessPiece, new ChessPosition(column, row).toPosition());
         boardPieces.add(chessPiece);
@@ -249,12 +305,12 @@ public class ChessMatch {
         placeNewPiece('h', 8, new Rook(BOARD, Color.BLACK));
 
         for(char column='a'; column<'i'; column++){
-            placeNewPiece(column, 7, new Pawn(BOARD, Color.BLACK));
+            placeNewPiece(column, 7, new Pawn(BOARD, Color.BLACK, this));
         }
 
 
         for(char column='a'; column<'i'; column++){
-            placeNewPiece(column, 2, new Pawn(BOARD, Color.WHITE));
+            placeNewPiece(column, 2, new Pawn(BOARD, Color.WHITE, this));
         }
 
         placeNewPiece('a', 1, new Rook(BOARD, Color.WHITE));
