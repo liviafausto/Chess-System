@@ -6,6 +6,7 @@ import boardgame.Position;
 import chess.pieces.*;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,10 +16,10 @@ public class ChessMatch {
     private final Board BOARD;
     private boolean check;
     private boolean checkmate;
+    private ChessPiece enPassantVulnerable;
+    private ChessPiece promotedPiece;
     private final List<Piece> boardPieces = new ArrayList<>();
     // The list "boardPieces" is final because it's always going to be an ArrayList
-
-    private ChessPiece enPassantVulnerable;
 
     public ChessMatch(){
         BOARD = new Board(8,8);
@@ -36,6 +37,8 @@ public class ChessMatch {
     public boolean getCheckmate(){ return checkmate; }
 
     public ChessPiece getEnPassantVulnerable(){ return enPassantVulnerable; }
+
+    public ChessPiece getPromotedPiece(){ return promotedPiece; }
 
     public ChessPiece[][] getPieces(){
         ChessPiece[][] chessPieces = new ChessPiece[BOARD.getRows()][BOARD.getColumns()];
@@ -59,26 +62,33 @@ public class ChessMatch {
         Position target = targetPosition.toPosition();
         validateSourcePosition(source);
         validateTargetPosition(source, target);
-        Piece capturedPiece = makeMove(source, target);
 
+        Piece capturedPiece = makeMove(source, target);
         if(testCheck(currentPlayer)){
             undoMove(source, target, capturedPiece);
             throw new ChessException("You can't put yourself in check.");
         }
-        check = testCheck(opponent(currentPlayer));
 
-        if(testCheckMate(opponent(currentPlayer)))
-            checkmate = true;
+        ChessPiece movedPiece = (ChessPiece) BOARD.getPiece(target);
+
+        // # Special Move: Promoted
+        // If the Pawn reaches the end of the board, it can turn into a Rook/Knight/Bishop/Queen
+        if(movedPiece instanceof Pawn && testPromotion(movedPiece, target))
+            promotedPiece = movedPiece;
         else
-            nextTurn();
+            promotedPiece = null;
 
         // # Special Move: En Passant
-        ChessPiece movedPiece = (ChessPiece) BOARD.getPiece(target);
         // A Pawn is vulnerable to the 'En Passant' if it has just moved 2 squares at once
         if(movedPiece instanceof Pawn && testEnPassant(source, target))
             enPassantVulnerable = movedPiece;
         else
             enPassantVulnerable = null;
+
+        check = testCheck(opponent(currentPlayer));
+        if(testCheckMate(opponent(currentPlayer)))
+            checkmate = true;
+        else nextTurn();
 
         return (ChessPiece)capturedPiece;
     }
@@ -252,6 +262,45 @@ public class ChessMatch {
 
 
     // # Special Moves' Methods
+    private boolean testPromotion(ChessPiece movedPiece, Position target){
+        return (movedPiece.getColor() == Color.WHITE && target.getRow() == 0)
+                || (movedPiece.getColor() == Color.BLACK && target.getRow() == 7);
+    }
+
+    public boolean replacePromotedPiece(String type){
+        if(promotedPiece == null)
+            throw new IllegalStateException("There is no piece to be promoted.");
+
+        if(!type.equals("B") && !type.equals("N") && !type.equals("R") && !type.equals("Q"))
+            return false;
+
+        // 1. Remove the Pawn from its position on the board
+        Position promotedPosition = promotedPiece.getChessPosition().toPosition();
+        Piece pawn = BOARD.removePiece(promotedPosition);
+        boardPieces.remove(pawn);
+
+        // 2. Place the new piece on the board
+        ChessPiece newPiece = newPromotedPiece(type, promotedPiece.getColor());
+        BOARD.placePiece(newPiece, promotedPosition);
+        boardPieces.add(newPiece);
+
+        // 3. Test if the new piece caused the King to be in check/checkmate
+        check = testCheck(currentPlayer);
+        checkmate = testCheckMate(currentPlayer);
+
+        return true;
+    }
+
+    private ChessPiece newPromotedPiece(String type, Color color){
+        if(type.equals("B")) return new Bishop(BOARD, color);
+
+        if(type.equals("N")) return new Knight(BOARD, color);
+
+        if(type.equals("R")) return new Rook(BOARD, color);
+
+        else return new Queen(BOARD, color);
+    }
+
     private boolean kingSideCastling(Position source, Position target){
         return target.getColumn() == source.getColumn() + 2;
     }

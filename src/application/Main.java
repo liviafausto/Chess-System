@@ -35,13 +35,28 @@ public class Main {
                 ChessPosition targetPosition = UI.readChessPosition(scanner);
 
                 ChessPiece capturedPiece = chessMatch.performChessMove(sourcePosition, targetPosition);
+
                 if(capturedPiece != null){
                     capturedPieces.add(capturedPiece);
-                    System.out.println();
+                    /*System.out.println();
                     System.out.println("CONGRATULATIONS, YOU CAPTURED A PIECE!");
                     System.out.print("Press enter continue ");
-                    scanner.nextLine();
+                    scanner.nextLine();*/
                 }
+
+                if(chessMatch.getPromotedPiece() != null){
+                    System.out.println();
+                    System.out.print("Choose a piece for promotion (B/N/R/Q): ");
+                    String type = scanner.nextLine();
+                    boolean replaced = chessMatch.replacePromotedPiece(type);
+
+                    while(!replaced){
+                        System.out.print("Invalid value! Enter piece for promotion (B/N/R/Q): ");
+                        type = scanner.nextLine();
+                        replaced = chessMatch.replacePromotedPiece(type);
+                    }
+                }
+
             }
             catch(ChessException chessException){
                 System.out.println();
