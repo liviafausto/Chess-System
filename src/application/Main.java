@@ -5,10 +5,7 @@ import chess.ChessMatch;
 import chess.ChessPiece;
 import chess.ChessPosition;
 
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,7 +18,8 @@ public class Main {
                 UI.clearScreen();
                 UI.printMatch(chessMatch, capturedPieces);
                 System.out.println();
-                System.out.print("Source: ");
+                System.out.println("Choose a piece to move!");
+                System.out.print("The piece is currently on position: ");
                 ChessPosition sourcePosition = UI.readChessPosition(scanner);
 
                 // The possible moves on the board have colored background:
@@ -31,18 +29,13 @@ public class Main {
 
                 System.out.println();
                 System.out.println();
-                System.out.print("Target: ");
+                System.out.print("Move the piece to position: ");
                 ChessPosition targetPosition = UI.readChessPosition(scanner);
 
                 ChessPiece capturedPiece = chessMatch.performChessMove(sourcePosition, targetPosition);
 
-                if(capturedPiece != null){
+                if(capturedPiece != null)
                     capturedPieces.add(capturedPiece);
-                    /*System.out.println();
-                    System.out.println("CONGRATULATIONS, YOU CAPTURED A PIECE!");
-                    System.out.print("Press enter continue ");
-                    scanner.nextLine();*/
-                }
 
                 if(chessMatch.getPromotedPiece() != null){
                     System.out.println();
